@@ -213,8 +213,8 @@ const uint8_t nt_clear_icon[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, };
 
 String apikey   = "your Weather Underground API key";
-String country  = "your country" //e.g. "UK";
-String city     = "your city"    //e.g. "LONDON";
+String country  = "your country"; //e.g. "UK";
+String city     = "your city";    //e.g. "LONDON";
 
 const char* host     = "api.wunderground.com";
 const char* ssid     = "your SSID";
