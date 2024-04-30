@@ -477,7 +477,7 @@ bool  CurrCondObj(String* currCondString){
   api_error = false;
   // When using a StaticJsonBuffer you must allocate sufficient memory for the json string returned by the WU api
   Serial.println("Creating object...");
-  DynamicJsonDocument jsonBuffer(10*1024);
+  JsonDocument jsonBuffer;
   // Create root object and parse the json file returned from the api. The API returns errors and these need to be checked to ensure successful decoding
   deserializeJson(jsonBuffer, currCondString);
   JsonObject root = jsonBuffer.as<JsonObject>();
