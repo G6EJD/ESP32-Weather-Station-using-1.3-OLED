@@ -1,12 +1,12 @@
-#include "SH1106Wire.h"    // https://github.com/squix78/esp8266-oled-ssd1306
-// Include the UI lib
+#include "SH1106Wire.h"    // https://github.com/ThingPulse/esp8266-oled-ssd1306
 #include "OLEDDisplayUi.h" // Part of SSD1306/SH1106
 
 #include <WiFi.h>
-#include <ArduinoJson.h>   // https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h>   // https://github.com/bblanchon/ArduinoJson - latest version
 #include "time.h"
 
 // WU Icon names, there are 37, but many are the same image, so use the *icon when required, giving 10 basic icons to be used
+// nt means Night Time
 // *snow            == chanceflurries == chancesnow == flurries == nt_chanceflurries == nt_chancesnow == nt_flurries == nt_snow
 // *rain            == chancerain  == nt_chancerain  == nt_rain
 // *sleet           == chancesleet == nt_chancesleet == nt_sleet
@@ -20,6 +20,8 @@
 
 #define icon_width  40
 #define icon_height 40
+
+#define DISPLAY_WIDTH 128
 
 // Define each of the *icons for display
 const uint8_t snow_icon[] PROGMEM = {
@@ -266,7 +268,7 @@ void drawFrame1(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
 }
 
 void drawFrame2(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  if(CurrCondObj(&currCondString)) {
+  if(CurrCondObj(currCondString)) {
     display->setFont(ArialMT_Plain_10);
     String icon = getWeatherIcon();
     // The icons are drawn within a 40x20 box, each position can be slighly diiferent depending on icon shape
@@ -316,7 +318,7 @@ void drawFrame2(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
 }
 
 void drawFrame3(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  if(CurrCondObj(&currCondString)) {
+  if(CurrCondObj(currCondString)) {
     display->drawString(x+64,y+12,getWindDir()+" @ "+getWindMPH()+"mph");
     display->drawString(x+64,y+24,getPressure_mb()+"mB ["+display_Ptrend(getPressure_trend())+"]"); // '-' for falling '0' for no change and '+' for rising
     display->drawString(x+64,y+36,getDewPointC()+"°C Dewpoint");
@@ -330,7 +332,7 @@ String display_Ptrend(String indicator){
 }
 
 void drawFrame4(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  if(CurrCondObj(&currCondString)) {
+  if(CurrCondObj(currCondString)) {
     display->drawString(x+64,y+15,"Visibility: "+getVisibility_mi()+" miles");
     display->drawString(x+64,y+30,getPrecipTodayString()+" Rain");
   }
@@ -369,7 +371,7 @@ void setup() {
   Start_WiFi(ssid,password);
   configTime(1, 3600, "pool.ntp.org");
   lastConnectionTime = millis();
-  Call_API(&currCondString);      // Get data with an API call and place response in a String
+  Call_API(currCondString);      // Get data with an API call and place response in a String
 }
  
 void loop() {
@@ -379,7 +381,7 @@ void loop() {
     // Don't do stuff if you are below your
     // time budget.
     if (millis() - lastConnectionTime > postingInterval) {
-      Call_API(&currCondString);      // Get data with an API call and place response in a String
+      Call_API(currCondString);      // Get data with an API call and place response in a String
       Serial.println(currCondString); // Display the response
       lastConnectionTime = millis();
     }
@@ -403,7 +405,7 @@ int Start_WiFi(const char* ssid, const char* password){
  return 1;
 }
  
-int Call_API(String* resultString) {
+int Call_API(String &resultString) {
   client.stop();  // Clear any current connections
   Serial.println("Connecting to "+String(host)); // start a new connection
   const int httpPort = 80;
@@ -427,7 +429,7 @@ int Call_API(String* resultString) {
   }
   Serial.print("Receiving API weather data");
   while(client.available()) {
-    *(resultString) = client.readStringUntil('\r');
+    resultString = client.readStringUntil('\r');
     Serial.print(".");
   }
   Serial.println("\r\nClosing connection");
@@ -473,7 +475,7 @@ const char* CurrentObservation_precip_today_in;
 const char* CurrentObservation_precip_today_metric;
 const char* CurrentObservation_icon;
 
-bool  CurrCondObj(String* currCondString){
+bool  CurrCondObj(String currCondString){
   api_error = false;
   // When using a StaticJsonBuffer you must allocate sufficient memory for the json string returned by the WU api
   Serial.println("Creating object...");
